@@ -1,9 +1,10 @@
-package main
+package pkg
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 func IsSymlink(stat os.FileInfo) bool {

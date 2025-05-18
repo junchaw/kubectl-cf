@@ -1,9 +1,9 @@
-package main
+package pkg
 
 import (
 	_ "embed"
 	"fmt"
-	"github.com/spongeprojects/magicconch"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,9 +20,13 @@ func t(messageID string, args ...interface{}) string {
 }
 
 func init() {
-	magicconch.Must(yaml.Unmarshal(transFallbackYAML, &trans))
+	if err := yaml.Unmarshal(transFallbackYAML, &trans); err != nil {
+		panic(err)
+	}
 	var customized map[string]string
-	magicconch.Must(yaml.Unmarshal(transYAML, &customized))
+	if err := yaml.Unmarshal(transYAML, &customized); err != nil {
+		panic(err)
+	}
 	for k, v := range customized {
 		trans[k] = v
 	}
