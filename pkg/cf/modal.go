@@ -5,18 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/junchaw/kubectl-cf/pkg/sys"
-	"github.com/junchaw/kubectl-cf/pkg/term"
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	// PreviousKubeconfigFullPath is the file name which stores the previous kubeconfig file's full path
-	PreviousKubeconfigFullPath = "previous"
 )
 
 type KubectlCfModal struct {
@@ -29,30 +21,17 @@ type KubectlCfModal struct {
 	// cursor indicates which candidate our cursor is pointing at
 	cursor int
 
+	// quitting is a flag to indicate if the program is quitting
 	quitting bool
 
 	// farewell is the message which will be printed before quitting
 	farewell string
 
-	// currentConfigPath is the full path of current kubeconfig
-	currentConfigPath string
+	// currentKubeconfigPath is the full path of current kubeconfig
+	currentKubeconfigPath string
 }
 
 var Modal = &KubectlCfModal{}
-
-var (
-	Warning = term.MakeFgStyle("1")   // red
-	Info    = term.MakeFgStyle("28")  // blue
-	Subtle  = term.MakeFgStyle("241") // gray
-)
-
-var (
-	homeDir               = sys.HomeDir()
-	kubeDir               = filepath.Join(homeDir, ".kube")
-	defaultKubeconfigPath = filepath.Join(kubeDir, "config")
-	kubeconfigPath        = filepath.Join(kubeDir, "config") // same as defaultKubeconfigPath for now, maybe allow user to specify
-	cfDir                 = filepath.Join(kubeDir, "kubectl-cf")
-)
 
 func (modal *KubectlCfModal) quit(farewell string) tea.Cmd {
 	if !strings.HasSuffix(farewell, "\n") {
@@ -64,17 +43,17 @@ func (modal *KubectlCfModal) quit(farewell string) tea.Cmd {
 }
 
 func (modal *KubectlCfModal) symlinkConfigPathTo(name string) string {
-	if err := os.WriteFile(filepath.Join(cfDir, PreviousKubeconfigFullPath), []byte(modal.currentConfigPath), 0644); err != nil {
+	if err := os.WriteFile(previousKubeconfigConfigPath, []byte(modal.currentKubeconfigPath), 0644); err != nil {
 		panic(err)
 	}
 
 	if err := sys.CreateSymlink(name, kubeconfigPath); err != nil {
-		return Warning(t("createSymlinkError", err))
+		return warning(t("createSymlinkError", err))
 	}
-	s := t("symlinkNowPointTo", Info(kubeconfigPath), Info(name))
+	s := t("symlinkNowPointTo", info(kubeconfigPath), info(name))
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
 	if !(kubeconfigEnv == kubeconfigPath || (kubeconfigPath == defaultKubeconfigPath && kubeconfigEnv == "")) {
-		s += "\n" + Warning(t("kubeconfigEnvWarning", kubeconfigPath))
+		s += "\n" + warning(t("kubeconfigEnvWarning", kubeconfigPath))
 	}
 	return s
 }
@@ -83,6 +62,7 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 	if len(flag.Args()) > 1 {
 		return modal.quit(t("wrongNumberOfArgumentExpect1"))
 	}
+	kubeconfigArg := flag.Arg(0)
 
 	candidates, err := ListKubeconfigCandidatesInDir(kubeDir)
 	if err != nil {
@@ -90,54 +70,34 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 	}
 	Modal.candidates = candidates
 
-	logger.Debugf("Path to config symlink: %s", kubeconfigPath)
-
 	info, err := os.Lstat(kubeconfigPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
 		logger.Debugf("The symlink not exist, using the default kubeconfig: %s", defaultKubeconfigPath)
-		Modal.currentConfigPath = defaultKubeconfigPath
+		Modal.currentKubeconfigPath = defaultKubeconfigPath
 	} else {
 		if sys.IsSymlink(info) {
 			target, err := os.Readlink(kubeconfigPath)
 			if err != nil {
 				panic(err)
 			}
-			logger.Debugf("The symlink points to: %s", target)
-			Modal.currentConfigPath = target
+			Modal.currentKubeconfigPath = target
 		} else {
 			logger.Debugf("The symlink is not a symlink")
-			return modal.quit(Warning(t("kubeconfigNotSymlink", kubeconfigPath)))
-		}
-	}
-	logger.Debugf("Current using kubeconfig: %s", Modal.currentConfigPath)
-
-	if logger.GetLevel() == logrus.DebugLevel {
-		f, err := os.Open(filepath.Join(cfDir, PreviousKubeconfigFullPath))
-		if err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
-			logger.Debugf("No previous kubeconfig")
-		} else {
-			b, err := io.ReadAll(f)
-			if err != nil {
-				panic(err)
-			}
-			logger.Debugf("Previous kubeconfig: %s", string(b))
+			return modal.quit(warning(t("kubeconfigNotSymlink", kubeconfigPath)))
 		}
 	}
 
-	if search := flag.Arg(0); search != "" {
-		if search == "-" {
-			f, err := os.Open(filepath.Join(cfDir, PreviousKubeconfigFullPath))
+	if kubeconfigArg != "" {
+		if kubeconfigArg == "-" {
+			f, err := os.Open(previousKubeconfigConfigPath)
 			if err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
-				return modal.quit(Warning(t("noPreviousKubeconfig")))
+				return modal.quit(warning(t("noPreviousKubeconfig")))
 			}
 			b, err := io.ReadAll(f)
 			if err != nil {
@@ -148,17 +108,17 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 
 		var guess []Candidate
 		for _, candidate := range candidates {
-			if candidate.Name == search {
+			if candidate.Name == kubeconfigArg {
 				guess = []Candidate{candidate}
 				break
 			}
-			if strings.HasPrefix(candidate.Name, search) {
+			if strings.HasPrefix(candidate.Name, kubeconfigArg) {
 				guess = append(guess, candidate)
 			}
 		}
 
 		if guess == nil {
-			return modal.quit(Warning(t("noMatchFound", search)))
+			return modal.quit(warning(t("noMatchFound", kubeconfigArg)))
 		}
 
 		if len(guess) == 1 {
@@ -169,12 +129,12 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 		for _, g := range guess {
 			s = append(s, g.Name)
 		}
-		return modal.quit(Warning(t("moreThanOneMatchesFound", search, strings.Join(s, ", "))))
+		return modal.quit(warning(t("moreThanOneMatchesFound", kubeconfigArg, strings.Join(s, ", "))))
 	}
 
-	// focus on current config path
+	// focus on current kubeconfig path
 	for key, candidate := range candidates {
-		if candidate.FullPath == modal.currentConfigPath {
+		if candidate.FullPath == modal.currentKubeconfigPath {
 			modal.cursor = key
 		}
 	}
@@ -184,96 +144,69 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 
 func (modal *KubectlCfModal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	// Is it a key press?
-	case tea.KeyMsg:
-		// The key pressed
-		switch msg.String() {
-
-		// These keys should exit the program.
-		case "ctrl+c", "q", "esc":
+	case tea.KeyMsg: // Is it a key press?
+		switch msg.String() { // The key pressed
+		case "ctrl+c", "q", "esc": // These keys should exit the program.
 			return modal, tea.Quit
 
-		// The "up" and "k" keys move the cursor up
-		case "up", "k":
+		case "up", "k": // The "up" and "k" keys move the cursor up
 			if modal.cursor > 0 {
 				modal.cursor--
 			} else {
 				modal.cursor = len(modal.candidates) - 1
 			}
 
-		// The "down" and "j" keys move the cursor down
-		case "down", "j":
+		case "down", "j": // The "down" and "j" keys move the cursor down
 			if modal.cursor < len(modal.candidates)-1 {
 				modal.cursor++
 			} else {
 				modal.cursor = 0
 			}
 
-		case "enter":
+		case "enter": // The "enter" key selects the current candidate
 			return modal, modal.quit(modal.symlinkConfigPathTo(modal.candidates[modal.cursor].FullPath))
 		}
 	}
 
-	// Return the updated model to the Bubble Tea runtime for processing.
-	return modal, nil
+	return modal, nil // Return the updated model to the Bubble Tea runtime for processing.
 }
 
 func (modal *KubectlCfModal) View() string {
-	// The header
-	s := strings.Join(modal.meta, "\n") + "\n"
+	content := strings.Join(modal.meta, "\n") + "\n" // The header
 
 	if modal.quitting {
-		return s + modal.farewell
+		return content + modal.farewell
 	}
 
-	s += t("whatKubeconfig") + "\n\n"
+	content += t("whatKubeconfig") + "\n\n"
 
-	// Iterate over our candidates
 	longestName := 0
-	for _, candidate := range modal.candidates {
+	for _, candidate := range modal.candidates { // Iterate over our candidates to find the longest name
 		if len(candidate.Name) > longestName {
 			longestName = len(candidate.Name)
 		}
 	}
-	for key, candidate := range modal.candidates {
-		cursor := " "
+	for key, candidate := range modal.candidates { // Iterate over our candidates to display them
+		cursor := " " // The cursor at the beginning of the line
 		if modal.cursor == key {
-			cursor = ">"
+			cursor = CursorMark
 		}
-		s += cursor
+		content += cursor
 
 		suffix := ""
-		if candidate.FullPath == modal.currentConfigPath {
-			suffix = "*"
+		if candidate.FullPath == modal.currentKubeconfigPath {
+			suffix = CurrentKubeconfigMark
 		}
 		tmpl := fmt.Sprintf(" %%-%ds %%s%%s\n", longestName)
-		ts := fmt.Sprintf(tmpl, candidate.Name, candidate.FullPath, suffix)
-		if candidate.FullPath == modal.currentConfigPath {
-			ts = Info(ts)
-		}
-		s += ts
-	}
-
-	// The footer
-	s += Subtle("\n" + t("helpActions") + "\n")
-	return s
-}
-
-func init() {
-	flag.Usage = func() {
-		_, _ = fmt.Fprint(flag.CommandLine.Output(), t("cfUsage"))
-		flag.PrintDefaults()
-	}
-
-	// ensure config dir exists
-	if _, err := os.Lstat(cfDir); err != nil {
-		if os.IsNotExist(err) {
-			logger.Debugf("Default config dir %s not exist, creating", cfDir)
-			if err := os.Mkdir(cfDir, 0755); err != nil {
-				panic(err)
-			}
+		candicateLine := fmt.Sprintf(tmpl, candidate.Name, candidate.FullPath, suffix)
+		if candidate.FullPath == modal.currentKubeconfigPath {
+			candicateLine = info(candicateLine)
 		} else {
-			panic(err)
+			candicateLine = text(candicateLine) // we need to set the style for normal text to override active style
 		}
+		content += candicateLine
 	}
+
+	content += subtle("\n" + t("helpActions") + "\n") // The footer
+	return content
 }

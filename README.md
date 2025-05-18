@@ -39,7 +39,7 @@ You can also rename it to any name you want, or create a symlink to it, with a s
 
 - [English](https://github.com/junchaw/kubectl-cf)
 
-## TODO (PR are welcomed)
+## TODO (PRs are welcomed)
 
 - Auto completion;
 - [krew](https://krew.sigs.k8s.io/) integration;

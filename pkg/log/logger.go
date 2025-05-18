@@ -6,7 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var DefaultLogger = logrus.New()
+var DefaultLogger = &logrus.Logger{
+	Out:       os.Stderr,
+	Formatter: new(logrus.TextFormatter),
+	Level:     logrus.WarnLevel,
+}
 
 func init() {
 	logLevel := os.Getenv("LOG_LEVEL")
