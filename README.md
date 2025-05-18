@@ -6,7 +6,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/junchaw/kubekraken)](https://goreportcard.com/report/github.com/junchaw/kubekraken)
 [![License](https://img.shields.io/github/license/junchaw/kubekraken?color=blue)](https://github.com/junchaw/kubekraken/blob/main/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/junchaw/kubekraken.svg)](https://hub.docker.com/r/junchaw/kubekraken/)
-[![Release a tag](https://github.com/junchaw/kubekraken/actions/workflows/release.yml/badge.svg)](https://github.com/junchaw/kubekraken/actions/workflows/release.yml)
 [![Releases](https://img.shields.io/github/v/release/junchaw/kubectl-cf)](https://github.com/junchaw/kubectl-cf/releases)
 
 Faster way to switch between kubeconfig files (not contexts).
