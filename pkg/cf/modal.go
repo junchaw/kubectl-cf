@@ -43,24 +43,18 @@ func (modal *KubectlCfModal) quit(farewell string) tea.Cmd {
 }
 
 func (modal *KubectlCfModal) symlinkConfigPathTo(name string) string {
-	if err := os.WriteFile(previousKubeconfigConfigPath, []byte(modal.currentKubeconfigPath), 0644); err != nil {
-		panic(err)
+	if err := updatePreviousKubeconfig(modal.currentKubeconfigPath); err != nil {
+		return warning(t("updatePreviousKubeconfigError", err.Error()))
 	}
-
 	if err := sys.CreateSymlink(name, kubeconfigPath); err != nil {
-		return warning(t("createSymlinkError", err))
+		return warning(t("createSymlinkError", err.Error()))
 	}
-	s := t("symlinkNowPointTo", info(kubeconfigPath), info(name))
-	kubeconfigEnv := os.Getenv("KUBECONFIG")
-	if !(kubeconfigEnv == kubeconfigPath || (kubeconfigPath == defaultKubeconfigPath && kubeconfigEnv == "")) {
-		s += "\n" + warning(t("kubeconfigEnvWarning", kubeconfigPath))
-	}
-	return s
+	return text(t("symlinkNowPointTo", info(kubeconfigPath), info(name)))
 }
 
 func (modal *KubectlCfModal) Init() tea.Cmd {
 	if len(flag.Args()) > 1 {
-		return modal.quit(t("wrongNumberOfArgumentExpect1"))
+		return modal.quit(t("wrongNumberOfArgumentExpect", 1))
 	}
 	kubeconfigArg := flag.Arg(0)
 
@@ -75,8 +69,7 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
-		logger.Debugf("The symlink not exist, using the default kubeconfig: %s", defaultKubeconfigPath)
-		Modal.currentKubeconfigPath = defaultKubeconfigPath
+		logger.Warnf("Kubeconfig not exist: %s", kubeconfigPath)
 	} else {
 		if sys.IsSymlink(info) {
 			target, err := os.Readlink(kubeconfigPath)
@@ -133,9 +126,9 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 	}
 
 	// focus on current kubeconfig path
-	for key, candidate := range candidates {
+	for index, candidate := range candidates {
 		if candidate.FullPath == modal.currentKubeconfigPath {
-			modal.cursor = key
+			modal.cursor = index
 		}
 	}
 

@@ -36,14 +36,13 @@ var (
 )
 
 var (
-	homeDir               = sys.HomeDir()
-	kubeDir               = filepath.Join(homeDir, ".kube")
-	defaultKubeconfigPath = filepath.Join(kubeDir, "config")
+	homeDir = sys.HomeDir()
+	kubeDir = filepath.Join(homeDir, ".kube")
 
 	kubectlCfConfigDir           = "" // will be set in init()
 	previousKubeconfigConfigPath = "" // will be set in init()
 
-	kubeconfigPath = filepath.Join(kubeDir, "config") // same as defaultKubeconfigPath for now, maybe allow user to specify
+	kubeconfigPath = "" // will be set in init()
 )
 
 func init() {
@@ -53,6 +52,11 @@ func init() {
 	}
 
 	previousKubeconfigConfigPath = filepath.Join(kubectlCfConfigDir, PreviousKubeconfigFullPath)
+
+	kubeconfigPath = os.Getenv("KUBECONFIG")
+	if kubeconfigPath == "" {
+		kubeconfigPath = filepath.Join(kubeDir, "config")
+	}
 
 	flag.Usage = func() {
 		_, _ = fmt.Fprint(flag.CommandLine.Output(), t("cfUsage"))

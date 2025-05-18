@@ -1,1 +1,2 @@
-# Fork https://github.com/spongeprojects/kubectl-cf and edit this file to provide a new language translation!
+# Fork https://github.com/junchaw/kubectl-cf and edit this file to provide a new language translation!
+# See ./trans-fallback.yaml for the messages to translate.
