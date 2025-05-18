@@ -1,32 +1,117 @@
-# This is an example .goreleaser.yml file with some sane defaults.
-# Make sure to check the documentation at http://goreleaser.com
-before:
-  hooks:
-    # You may remove this if you don't use go modules.
-    - go mod tidy
-    # you may remove this if you don't need go generate
-    - go generate ./...
+project_name: kubectl-cf
+
 builds:
-  - env:
-      - CGO_ENABLED=0
+  - binary: kubectl-cf
     goos:
-      - linux
       - windows
       - darwin
-archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
-checksum:
-  name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ .Tag }}-next"
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - '7'
+
 changelog:
   sort: asc
   filters:
     exclude:
       - '^docs:'
+      - '^doc:'
+      - '^chore:'
+      - '^chore(deps):'
       - '^test:'
+      - '^tests:'
+
+archives:
+  - id: kubectl-cf
+    name_template: '{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm}}v{{ .Arm }}{{ end }}'
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+
+docker_manifests:
+  - name_template: 'junchaw/kubectl-cf:{{ .Tag }}'
+    image_templates:
+      - 'junchaw/kubectl-cf:{{ .Tag }}-amd64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-arm64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-armv7'
+  - name_template: 'junchaw/kubectl-cf:latest'
+    image_templates:
+      - 'junchaw/kubectl-cf:{{ .Tag }}-amd64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-arm64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-armv7'
+  - name_template: 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}'
+    image_templates:
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-amd64'
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-arm64'
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-armv7'
+
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: buildx.Dockerfile
+    image_templates:
+      - 'junchaw/kubectl-cf:latest-amd64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-amd64'
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-amd64'
+    build_flag_templates:
+      - '--pull'
+      # https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+      - '--label=org.opencontainers.image.title={{.ProjectName}}'
+      - '--label=org.opencontainers.image.description=Tiny Go webserver that prints OS information and HTTP request to output'
+      - '--label=org.opencontainers.image.source={{.GitURL}}'
+      - '--label=org.opencontainers.image.url={{.GitURL}}'
+      - '--label=org.opencontainers.image.documentation={{.GitURL}}'
+      - '--label=org.opencontainers.image.created={{.Date}}'
+      - '--label=org.opencontainers.image.revision={{.FullCommit}}'
+      - '--label=org.opencontainers.image.version={{.Version}}'
+      - '--platform=linux/amd64'
+
+  - use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: buildx.Dockerfile
+    image_templates:
+      - 'junchaw/kubectl-cf:latest-arm64'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-arm64'
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-arm64'
+    build_flag_templates:
+      - '--pull'
+      # https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+      - '--label=org.opencontainers.image.title={{.ProjectName}}'
+      - '--label=org.opencontainers.image.description=Tiny Go webserver that prints OS information and HTTP request to output'
+      - '--label=org.opencontainers.image.source={{.GitURL}}'
+      - '--label=org.opencontainers.image.url={{.GitURL}}'
+      - '--label=org.opencontainers.image.documentation={{.GitURL}}'
+      - '--label=org.opencontainers.image.created={{.Date}}'
+      - '--label=org.opencontainers.image.revision={{.FullCommit}}'
+      - '--label=org.opencontainers.image.version={{.Version}}'
+      - '--platform=linux/arm64'
+
+  - use: buildx
+    goos: linux
+    goarch: arm
+    goarm: '7'
+    dockerfile: buildx.Dockerfile
+    image_templates:
+      - 'junchaw/kubectl-cf:latest-armv7'
+      - 'junchaw/kubectl-cf:{{ .Tag }}-armv7'
+      - 'junchaw/kubectl-cf:v{{ .Major }}.{{ .Minor }}-armv7'
+    build_flag_templates:
+      - '--pull'
+      # https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
+      - '--label=org.opencontainers.image.title={{.ProjectName}}'
+      - '--label=org.opencontainers.image.description=Tiny Go webserver that prints OS information and HTTP request to output'
+      - '--label=org.opencontainers.image.source={{.GitURL}}'
+      - '--label=org.opencontainers.image.url={{.GitURL}}'
+      - '--label=org.opencontainers.image.documentation={{.GitURL}}'
+      - '--label=org.opencontainers.image.created={{.Date}}'
+      - '--label=org.opencontainers.image.revision={{.FullCommit}}'
+      - '--label=org.opencontainers.image.version={{.Version}}'
+      - '--platform=linux/arm/v7'

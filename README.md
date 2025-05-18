@@ -1,11 +1,11 @@
 
 <div align="center">
-  <img src="docs/logo.png" alt="kubekraken logo" width="200">
+  <img src="docs/logo.png" alt="kubectl-cf logo" width="200">
 </div>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/junchaw/kubekraken)](https://goreportcard.com/report/github.com/junchaw/kubekraken)
-[![License](https://img.shields.io/github/license/junchaw/kubekraken?color=blue)](https://github.com/junchaw/kubekraken/blob/main/LICENSE)
-[![Docker Pulls](https://img.shields.io/docker/pulls/junchaw/kubekraken.svg)](https://hub.docker.com/r/junchaw/kubekraken/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/junchaw/kubectl-cf)](https://goreportcard.com/report/github.com/junchaw/kubectl-cf)
+[![License](https://img.shields.io/github/license/junchaw/kubectl-cf?color=blue)](https://github.com/junchaw/kubectl-cf/blob/main/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/junchaw/kubectl-cf.svg)](https://hub.docker.com/r/junchaw/kubectl-cf/)
 [![Releases](https://img.shields.io/github/v/release/junchaw/kubectl-cf)](https://github.com/junchaw/kubectl-cf/releases)
 
 Faster way to switch between kubeconfig files (not contexts).
