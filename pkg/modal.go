@@ -47,11 +47,11 @@ var (
 )
 
 var (
-	homeDir           = utils.HomeDir()
-	kubeDir           = filepath.Join(homeDir, ".kube")
-	defaultConfigPath = filepath.Join(kubeDir, "config")
-	configPath        = filepath.Join(kubeDir, "config") // same as defaultConfigPath for now, maybe allow user to specify
-	cfDir             = filepath.Join(kubeDir, "kubectl-cf")
+	homeDir               = utils.HomeDir()
+	kubeDir               = filepath.Join(homeDir, ".kube")
+	defaultKubeconfigPath = filepath.Join(kubeDir, "config")
+	kubeconfigPath        = filepath.Join(kubeDir, "config") // same as defaultKubeconfigPath for now, maybe allow user to specify
+	cfDir                 = filepath.Join(kubeDir, "kubectl-cf")
 )
 
 func (m *Modal) quit(farewell string) tea.Cmd {
@@ -68,14 +68,14 @@ func (m *Modal) symlinkConfigPathTo(name string) string {
 		panic(err)
 	}
 
-	err := Symlink(name, configPath)
+	err := Symlink(name, kubeconfigPath)
 	if err != nil {
 		return Warning(t("createSymlinkError", err))
 	}
-	s := t("symlinkNowPointTo", Info(configPath), Info(name))
+	s := t("symlinkNowPointTo", Info(kubeconfigPath), Info(name))
 	kubeconfigEnv := os.Getenv("KUBECONFIG")
-	if !(kubeconfigEnv == configPath || (configPath == defaultConfigPath && kubeconfigEnv == "")) {
-		s += "\n" + Warning(t("kubeconfigEnvWarning", configPath))
+	if !(kubeconfigEnv == kubeconfigPath || (kubeconfigPath == defaultKubeconfigPath && kubeconfigEnv == "")) {
+		s += "\n" + Warning(t("kubeconfigEnvWarning", kubeconfigPath))
 	}
 	return s
 }
@@ -91,18 +91,18 @@ func (modal *Modal) Init() tea.Cmd {
 	}
 	InitialModal.candidates = candidates
 
-	logger.Debugf("Path to config symlink: %s", configPath)
+	logger.Debugf("Path to config symlink: %s", kubeconfigPath)
 
-	info, err := os.Lstat(configPath)
+	info, err := os.Lstat(kubeconfigPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
-		logger.Debugf("The symlink not exist, using the default kubeconfig: %s", defaultConfigPath)
-		InitialModal.currentConfigPath = defaultConfigPath
+		logger.Debugf("The symlink not exist, using the default kubeconfig: %s", defaultKubeconfigPath)
+		InitialModal.currentConfigPath = defaultKubeconfigPath
 	} else {
 		if utils.IsSymlink(info) {
-			target, err := os.Readlink(configPath)
+			target, err := os.Readlink(kubeconfigPath)
 			if err != nil {
 				panic(err)
 			}
@@ -110,7 +110,7 @@ func (modal *Modal) Init() tea.Cmd {
 			InitialModal.currentConfigPath = target
 		} else {
 			logger.Debugf("The symlink is not a symlink")
-			return modal.quit(Warning(t("kubeconfigNotSymlink", configPath)))
+			return modal.quit(Warning(t("kubeconfigNotSymlink", kubeconfigPath)))
 		}
 	}
 	logger.Debugf("Current using kubeconfig: %s", InitialModal.currentConfigPath)
