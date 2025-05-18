@@ -3,13 +3,16 @@ cfUsage: |
     cf           Select kubeconfig interactively
     cf [config]  Select kubeconfig directly
     cf -         Switch to the previous kubeconfig
-updatePreviousKubeconfigError: "Unable to update previous kubeconfig: %s"
 createSymlinkError: "Create symlink error: %s"
 helpActions: "j/k, up/down: select • enter: choose • q, esc: quit"
 moreThanOneMatchesFound: "More than 1 matches found: %s, can not determine: %s"
 noMatchFound: "No match found: %s"
 noPreviousKubeconfig: "No previous kubeconfig"
+notASymlinkDoYouWantToMoveIt: "The kubeconfig %s is not a symlink, do you want to move it to %s? (Y/n):"
+renameKubeconfigError: "Unable to rename kubeconfig: %s"
+renameKubeconfigCanceled: "Rename kubeconfig canceled"
 symlinkNowPointTo: "%s is now symlink to %s"
-kubeconfigNotSymlink: "%s must be a symlink to use kubectl-cf, please move it to other place like ~/.kube/default.kubeconfig"
+unableToRefreshCandidates: "Unable to refresh candidates: %s"
+updatePreviousKubeconfigError: "Unable to update previous kubeconfig: %s"
 whatKubeconfig: "What kubeconfig you want to use?"
 wrongNumberOfArgumentExpect: "Wrong number of arguments, expect %d"

@@ -3,7 +3,6 @@ package cf
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/pkg/errors"
 )
@@ -12,9 +11,6 @@ type Candidate struct {
 	Name     string
 	FullPath string
 }
-
-// KubeconfigFilenamePattern defines the name pattern of kubeconfig files
-var KubeconfigFilenamePattern = regexp.MustCompile(`^(.*)\.(kubeconfig|config)$`)
 
 // ListKubeconfigCandidatesInDir lists all files in dir that matches KubeconfigFilenamePattern
 func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {
@@ -29,18 +25,21 @@ func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {
 			continue
 		}
 
-		if file.Name() == "config" {
-			files = append(files, Candidate{
-				Name:     file.Name(),
-				FullPath: filepath.Join(dir, file.Name()),
-			})
-			continue
-		}
+		groupNames := kubeconfigFilenameMatchPattern.SubexpNames() // regex match groups
+		nameGroupIndex := 0
+		for i, name := range groupNames {
+			if name == KubeconfigFilenameMatchPatternNameGroup { // find the "name" group index
+				nameGroupIndex = i
+				break
+			}
+		} // if there is no "name" group, will use the whole config file name
 
-		matches := KubeconfigFilenamePattern.FindStringSubmatch(file.Name())
+		matches := kubeconfigFilenameMatchPattern.FindStringSubmatch(file.Name())
 		if len(matches) >= 2 {
 			files = append(files, Candidate{
-				Name:     matches[1],
+				// Use the last match group as the name, if there is no match group in the regex,
+				// will use the whole config file name, I think this is the best we can do with different regex.
+				Name:     matches[nameGroupIndex],
 				FullPath: filepath.Join(dir, file.Name()),
 			})
 		}
