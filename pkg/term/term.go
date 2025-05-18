@@ -1,4 +1,4 @@
-package utils
+package term
 
 import "github.com/muesli/termenv"
 

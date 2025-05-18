@@ -4,15 +4,14 @@ import (
 	"flag"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/junchaw/kubectl-cf/pkg"
+	"github.com/junchaw/kubectl-cf/pkg/cf"
 )
 
 func main() {
 	flag.Parse()
 
-	p := tea.NewProgram(pkg.InitialModal)
-	_, err := p.Run()
-	if err != nil {
+	p := tea.NewProgram(cf.Modal)
+	if _, err := p.Run(); err != nil {
 		panic(err)
 	}
 }

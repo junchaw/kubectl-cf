@@ -1,4 +1,4 @@
-package pkg
+package log
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var logger = logrus.New()
+var DefaultLogger = logrus.New()
 
 func init() {
 	logLevel := os.Getenv("LOG_LEVEL")
@@ -14,5 +14,5 @@ func init() {
 	if err != nil {
 		level = logrus.WarnLevel
 	}
-	logger.SetLevel(level)
+	DefaultLogger.SetLevel(level)
 }

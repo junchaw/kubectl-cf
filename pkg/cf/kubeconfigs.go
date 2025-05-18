@@ -1,4 +1,4 @@
-package kubeconfigs
+package cf
 
 import (
 	"os"
@@ -14,7 +14,7 @@ type Candidate struct {
 }
 
 // KubeconfigFilenamePattern defines the name pattern of kubeconfig files
-var KubeconfigFilenamePattern = regexp.MustCompile("^(.*)\\.(kubeconfig|config)$")
+var KubeconfigFilenamePattern = regexp.MustCompile(`^(.*)\.(kubeconfig|config)$`)
 
 // ListKubeconfigCandidatesInDir lists all files in dir that matches KubeconfigFilenamePattern
 func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {

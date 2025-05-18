@@ -1,4 +1,4 @@
-package pkg
+package translations
 
 import (
 	_ "embed"
@@ -15,7 +15,8 @@ var transFallbackYAML []byte
 
 var trans map[string]string
 
-func t(messageID string, args ...interface{}) string {
+// T is a wrapper for fmt.Sprintf, it will return the translated string
+func T(messageID string, args ...any) string {
 	return fmt.Sprintf(trans[messageID], args...)
 }
 
