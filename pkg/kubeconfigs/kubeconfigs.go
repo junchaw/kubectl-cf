@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/junchaw/kubectl-cf/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -26,11 +25,7 @@ func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {
 
 	var files []Candidate
 	for _, file := range fileInfo {
-		info, err := file.Info()
-		if err != nil {
-			return nil, errors.Wrap(err, "file.Info error")
-		}
-		if file.IsDir() || utils.IsSymlink(info) {
+		if file.IsDir() {
 			continue
 		}
 
