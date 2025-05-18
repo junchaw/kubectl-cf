@@ -11,7 +11,8 @@ func main() {
 	flag.Parse()
 
 	p := tea.NewProgram(pkg.InitialModal)
-	if err := p.Start(); err != nil {
+	_, err := p.Run()
+	if err != nil {
 		panic(err)
 	}
 }
