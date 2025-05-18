@@ -1,10 +1,14 @@
-package pkg
+package utils
 
 import (
 	"os"
 	"path/filepath"
 	"runtime"
 )
+
+func IsSymlink(stat os.FileInfo) bool {
+	return stat.Mode()&os.ModeSymlink != 0
+}
 
 // HomeDir returns the home directory for the current user.
 // On Windows:

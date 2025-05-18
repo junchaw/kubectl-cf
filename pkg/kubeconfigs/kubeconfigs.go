@@ -1,10 +1,11 @@
-package pkg
+package kubeconfigs
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 
+	"github.com/junchaw/kubectl-cf/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -18,14 +19,18 @@ var KubeconfigFilenamePattern = regexp.MustCompile("^(.*)\\.(kubeconfig|config)$
 
 // ListKubeconfigCandidatesInDir lists all files in dir that matches KubeconfigFilenamePattern
 func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {
-	fileInfo, err := ioutil.ReadDir(dir)
+	fileInfo, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, errors.Wrap(err, "ioutil.ReadDir error")
+		return nil, errors.Wrap(err, "os.ReadDir error")
 	}
 
 	var files []Candidate
 	for _, file := range fileInfo {
-		if file.IsDir() || IsSymlink(file) {
+		info, err := file.Info()
+		if err != nil {
+			return nil, errors.Wrap(err, "file.Info error")
+		}
+		if file.IsDir() || utils.IsSymlink(info) {
 			continue
 		}
 

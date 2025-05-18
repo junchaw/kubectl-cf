@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/junchaw/kubectl-cf/pkg/utils"
 	"github.com/pkg/errors"
 )
-
-func IsSymlink(stat os.FileInfo) bool {
-	return stat.Mode()&os.ModeSymlink != 0
-}
 
 // Symlink creates newname as a symbolic link to oldname,
 // if newname not exist or is a symlink, it will be replaced directly,
@@ -23,7 +20,7 @@ func Symlink(oldname, newname string) error {
 		return errors.Wrap(err, "os.Lstat error")
 	}
 
-	if IsSymlink(stat) {
+	if utils.IsSymlink(stat) {
 		// is a symlink
 		if err := os.Remove(newname); err != nil {
 			return errors.Wrap(err, "remove old symlink error")

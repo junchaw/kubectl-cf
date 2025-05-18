@@ -10,7 +10,7 @@ import (
 func main() {
 	flag.Parse()
 
-	p := tea.NewProgram(pkg.InitialModel)
+	p := tea.NewProgram(pkg.InitialModal)
 	if err := p.Start(); err != nil {
 		panic(err)
 	}
