@@ -1,12 +1,17 @@
-# kubectl-cf
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/spongeprojects/kubectl-cf)](https://goreportcard.com/report/github.com/spongeprojects/kubectl-cf)
-[![License](https://img.shields.io/github/license/spongeprojects/kubectl-cf?color=blue)](https://github.com/spongeprojects/kubectl-cf/blob/main/LICENSE)
-[![Releases](https://img.shields.io/github/v/release/spongeprojects/kubectl-cf)](https://github.com/spongeprojects/kubectl-cf/releases)
+<div align="center">
+  <img src="docs/logo.png" alt="kubekraken logo" width="200">
+</div>
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/junchaw/kubekraken)](https://goreportcard.com/report/github.com/junchaw/kubekraken)
+[![License](https://img.shields.io/github/license/junchaw/kubekraken?color=blue)](https://github.com/junchaw/kubekraken/blob/main/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/junchaw/kubekraken.svg)](https://hub.docker.com/r/junchaw/kubekraken/)
+[![Release a tag](https://github.com/junchaw/kubekraken/actions/workflows/release.yml/badge.svg)](https://github.com/junchaw/kubekraken/actions/workflows/release.yml)
+[![Releases](https://img.shields.io/github/v/release/junchaw/kubectl-cf)](https://github.com/junchaw/kubectl-cf/releases)
 
 Faster way to switch between kubeconfig files (not contexts).
 
-![demo.gif](https://github.com/spongeprojects/kubectl-cf/blob/main/assets/demo.gif?raw=true)
+![demo.gif](https://github.com/junchaw/kubectl-cf/blob/main/assets/demo.gif?raw=true)
 
 ```
 Usage of kubectl-cf:
@@ -23,7 +28,7 @@ kubeconfig (or multiple kubeconfig files), you should use https://github.com/ahm
 
 ### Install Manually
 
-First, download tar file from the [release page](https://github.com/spongeprojects/kubectl-cf/releases).
+First, download tar file from the [release page](https://github.com/junchaw/kubectl-cf/releases).
 
 After downloading the tar file, extract it, then put `kubectl-cf` in your `PATH`. It can be called directly by typing `kubectl-cf`, or as
 a [kubectl plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/) `kubectl cf`, because it has the
@@ -33,8 +38,7 @@ You can also rename it to any name you want, or create a symlink to it, with a s
 
 ## Translations
 
-- [English](https://github.com/spongeprojects/kubectl-cf)
-- [Chinese](https://github.com/wbsnail/kubectl-cf)
+- [English](https://github.com/junchaw/kubectl-cf)
 
 ## TODO (PR are welcomed)
 
