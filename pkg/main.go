@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -82,14 +83,14 @@ func (m *model) Init() tea.Cmd {
 	}
 	InitialModel.candidates = candidates
 
-	addDebugMessage("Path to config symlink: %s", configPath)
+	logger.Debugf("Path to config symlink: %s", configPath)
 
 	info, err := os.Lstat(configPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
-		addDebugMessage("The symlink not exist, using the default kubeconfig: %s", defaultConfigPath)
+		logger.Debugf("The symlink not exist, using the default kubeconfig: %s", defaultConfigPath)
 		InitialModel.currentConfigPath = defaultConfigPath
 	} else {
 		if IsSymlink(info) {
@@ -97,28 +98,28 @@ func (m *model) Init() tea.Cmd {
 			if err != nil {
 				panic(err)
 			}
-			addDebugMessage("The symlink points to: %s", target)
+			logger.Debugf("The symlink points to: %s", target)
 			InitialModel.currentConfigPath = target
 		} else {
-			addDebugMessage("The symlink is not a symlink")
+			logger.Debugf("The symlink is not a symlink")
 			return m.quit(Warning(t("kubeconfigNotSymlink", configPath)))
 		}
 	}
-	addDebugMessage("Current using kubeconfig: %s", InitialModel.currentConfigPath)
+	logger.Debugf("Current using kubeconfig: %s", InitialModel.currentConfigPath)
 
-	if debug {
+	if logger.GetLevel() == logrus.DebugLevel {
 		f, err := os.Open(filepath.Join(cfDir, PreviousKubeconfigFullPath))
 		if err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-			addDebugMessage("No previous kubeconfig")
+			logger.Debugf("No previous kubeconfig")
 		} else {
 			b, err := io.ReadAll(f)
 			if err != nil {
 				panic(err)
 			}
-			addDebugMessage("Previous kubeconfig: %s", string(b))
+			logger.Debugf("Previous kubeconfig: %s", string(b))
 		}
 	}
 
@@ -260,7 +261,7 @@ func init() {
 	// ensure config dir exists
 	if _, err := os.Lstat(cfDir); err != nil {
 		if os.IsNotExist(err) {
-			addDebugMessage("Default config dir %s not exist, creating", cfDir)
+			logger.Debugf("Default config dir %s not exist, creating", cfDir)
 			if err := os.Mkdir(cfDir, 0755); err != nil {
 				panic(err)
 			}
