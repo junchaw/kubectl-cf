@@ -2,7 +2,6 @@ package cf
 
 import (
 	"flag"
-	"os"
 	"path/filepath"
 	"regexp"
 
@@ -18,17 +17,18 @@ const (
 	// as a suggestion for backup when kubeconfig is not a symlink.
 	DefaultKubeconfigBaseName = "default-kubeconfig"
 
+	// KubeconfigSpecialPathKubeconfigDir is the special path that tells kubectl-cf to
+	// read kubeconfig files from the directory of the given kubeconfig file.
+	KubeconfigSpecialPathKubeconfigDir = "@kubeconfig-dir"
+
+	// KubeconfigFilenameMatchPatternStrDefault is the default regex pattern for kubeconfig filename
+	KubeconfigFilenameMatchPatternStrDefault = `^(?P<name>(config)|([^\.]+\.yaml))$`
+
 	// KubeconfigFilenameMatchPatternNameGroup is the name of the regex group for kubeconfig name, "(?P<name>...)"
 	KubeconfigFilenameMatchPatternNameGroup = "name"
 
 	// PreviousKubeconfigFullPath is the file name which stores the previous kubeconfig file's full path
 	PreviousKubeconfigFullPath = "previous"
-
-	// CursorMark is the mark for the cursor (current selection) in the list
-	CursorMark = ">"
-
-	// CurrentKubeconfigMark is the mark for the current kubeconfig in the list
-	CurrentKubeconfigMark = "*"
 )
 
 var logger = log.DefaultLogger
@@ -46,13 +46,23 @@ var (
 	homeDir = sys.HomeDir()
 	kubeDir = filepath.Join(homeDir, ".kube")
 
+	// kubectlCfConfigDir is the directory for kubectl-cf config files
 	kubectlCfConfigDir           = "" // will be set in init()
 	previousKubeconfigConfigPath = "" // will be set in init()
 
-	kubeconfigDir  = "" // will be set in init()
+	// kubeconfigPaths is the list of kubeconfig paths,
+	// parsed from environment variable KUBECTL_CF_PATHS, works like PATH environment variable
+	kubeconfigPaths = []string{} // will be set in init()
+
+	// kubeconfigDir is the directory for kubeconfig, for example, ~/.kube
+	kubeconfigDir = "" // will be set in init()
+
+	// kubeconfigPath is the current kubeconfig path, for example, ~/.kube/config
 	kubeconfigPath = "" // will be set in init()
 
-	// kubeconfigFilenameMatchPattern defines the name pattern of kubeconfig files
+	// kubeconfigFilenameMatchPattern defines the name pattern of kubeconfig files,
+	// it comes with a default value,
+	// and can be overriden by environment variable KUBECONFIG_FILENAME_MATCH_PATTERN
 	kubeconfigFilenameMatchPattern *regexp.Regexp = nil // will be set in init()
 )
 var Modal = &KubectlCfModal{}
@@ -64,9 +74,4 @@ func Run() error {
 
 	_, err := p.Run()
 	return err
-}
-
-// updatePreviousKubeconfig updates the previous kubeconfig file to the given kubeconfig path
-func updatePreviousKubeconfig(kubeconfigPath string) error {
-	return os.WriteFile(previousKubeconfigConfigPath, []byte(kubeconfigPath), 0644)
 }

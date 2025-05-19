@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 func init() {
@@ -15,6 +16,16 @@ func init() {
 	}
 
 	previousKubeconfigConfigPath = filepath.Join(kubectlCfConfigDir, PreviousKubeconfigFullPath)
+	var filteredPaths []string // Filter out empty items
+	for path := range strings.SplitSeq(os.Getenv("KUBECTL_CF_PATHS"), ":") {
+		if path != "" {
+			filteredPaths = append(filteredPaths, path)
+		}
+	}
+	kubeconfigPaths = filteredPaths
+	if len(kubeconfigPaths) == 0 { // by default, read kubeconfig files from the directory of the given kubeconfig file
+		kubeconfigPaths = []string{KubeconfigSpecialPathKubeconfigDir}
+	}
 
 	kubeconfigPath = os.Getenv("KUBECONFIG")
 	if kubeconfigPath == "" {
@@ -28,9 +39,9 @@ func init() {
 		flag.PrintDefaults()
 	}
 
-	kubeconfigFilenameMatchPatternStr := os.Getenv("KUBECTL_CF_KUBECONFIG_FILENAME_MATCH_PATTERN")
+	kubeconfigFilenameMatchPatternStr := os.Getenv("KUBECTL_CF_KUBECONFIG_MATCH_PATTERN")
 	if kubeconfigFilenameMatchPatternStr == "" {
-		kubeconfigFilenameMatchPatternStr = `^(?P<name>(config)|([^\.]+\.yaml))$`
+		kubeconfigFilenameMatchPatternStr = KubeconfigFilenameMatchPatternStrDefault
 	}
 	kubeconfigFilenameMatchPattern = regexp.MustCompile(kubeconfigFilenameMatchPatternStr)
 

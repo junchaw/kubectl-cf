@@ -54,7 +54,7 @@ func (modal *KubectlCfModal) quit(farewell string) tea.Cmd {
 }
 
 func (modal *KubectlCfModal) symlinkConfigPathTo(name string) string {
-	if err := updatePreviousKubeconfig(modal.currentKubeconfigPath); err != nil {
+	if err := os.WriteFile(previousKubeconfigConfigPath, []byte(modal.currentKubeconfigPath), 0644); err != nil {
 		return warning(t("updatePreviousKubeconfigError", err.Error()))
 	}
 	if err := sys.CreateSymlink(name, kubeconfigPath); err != nil {
@@ -64,9 +64,16 @@ func (modal *KubectlCfModal) symlinkConfigPathTo(name string) string {
 }
 
 func (modal *KubectlCfModal) refreshCandidates() error {
-	candidates, err := ListKubeconfigCandidatesInDir(kubeconfigDir)
-	if err != nil {
-		return err
+	var candidates []Candidate
+	for _, kubeconfigPath := range kubeconfigPaths {
+		if kubeconfigPath == KubeconfigSpecialPathKubeconfigDir {
+			kubeconfigPath = filepath.Dir(modal.currentKubeconfigPath)
+		}
+		candidatesInDir, err := ListKubeconfigCandidatesInDir(kubeconfigPath)
+		if err != nil {
+			return err
+		}
+		candidates = append(candidates, candidatesInDir...)
 	}
 	modal.candidates = candidates
 	items := make([]list.Item, len(candidates))
