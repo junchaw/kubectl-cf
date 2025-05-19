@@ -16,15 +16,15 @@ func init() {
 	}
 
 	previousKubeconfigConfigPath = filepath.Join(kubectlCfConfigDir, PreviousKubeconfigFullPath)
-	var filteredPaths []string // Filter out empty items
+	var filteredDirPaths []string // Filter out empty items
 	for path := range strings.SplitSeq(os.Getenv("KUBECTL_CF_PATHS"), ":") {
 		if path != "" {
-			filteredPaths = append(filteredPaths, path)
+			filteredDirPaths = append(filteredDirPaths, path)
 		}
 	}
-	kubeconfigPaths = filteredPaths
-	if len(kubeconfigPaths) == 0 { // by default, read kubeconfig files from the directory of the given kubeconfig file
-		kubeconfigPaths = []string{KubeconfigSpecialPathKubeconfigDir}
+	kubeconfigDirPaths = filteredDirPaths
+	if len(kubeconfigDirPaths) == 0 { // by default, read kubeconfig files from the directory of the given kubeconfig file
+		kubeconfigDirPaths = []string{KubeconfigSpecialPathKubeconfigDir}
 	}
 
 	kubeconfigPath = os.Getenv("KUBECONFIG")

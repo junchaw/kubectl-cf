@@ -28,7 +28,7 @@ type KubectlCfModal struct {
 	list list.Model
 
 	// candidates is a list of (Candidate/kubeconfig)s
-	candidates []Candidate
+	candidates Candidates
 
 	// currentKubeconfigPath is the full path of current kubeconfig, could be empty
 	currentKubeconfigPath string
@@ -64,23 +64,23 @@ func (modal *KubectlCfModal) symlinkConfigPathTo(name string) string {
 }
 
 func (modal *KubectlCfModal) refreshCandidates() error {
-	var candidates []Candidate
-	for _, kubeconfigPath := range kubeconfigPaths {
-		if kubeconfigPath == KubeconfigSpecialPathKubeconfigDir {
-			kubeconfigPath = filepath.Dir(modal.currentKubeconfigPath)
+	var candidates Candidates
+	for _, kubeconfigDirPath := range kubeconfigDirPaths {
+		if kubeconfigDirPath == KubeconfigSpecialPathKubeconfigDir { // parse special path for kubeconfig dir
+			kubeconfigDirPath = filepath.Dir(modal.currentKubeconfigPath)
 		}
-		candidatesInDir, err := ListKubeconfigCandidatesInDir(kubeconfigPath)
+		candidatesInDir, err := ListKubeconfigCandidatesInDir(kubeconfigDirPath)
 		if err != nil {
 			return err
 		}
-		candidates = append(candidates, candidatesInDir...)
+		for _, candidate := range candidatesInDir {
+			if candidate.FullPath != kubeconfigPath { // filter out the current kubeconfig
+				candidates = append(candidates, candidate)
+			}
+		}
 	}
 	modal.candidates = candidates
-	items := make([]list.Item, len(candidates))
-	for i, c := range candidates {
-		items[i] = c
-	}
-	modal.list.SetItems(items)
+	modal.list.SetItems(candidates.ToListItems())
 	return nil
 }
 

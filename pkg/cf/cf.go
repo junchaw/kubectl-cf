@@ -50,9 +50,9 @@ var (
 	kubectlCfConfigDir           = "" // will be set in init()
 	previousKubeconfigConfigPath = "" // will be set in init()
 
-	// kubeconfigPaths is the list of kubeconfig paths,
+	// kubeconfigDirPaths is the list of kubeconfig paths,
 	// parsed from environment variable KUBECTL_CF_PATHS, works like PATH environment variable
-	kubeconfigPaths = []string{} // will be set in init()
+	kubeconfigDirPaths = []string{} // will be set in init()
 
 	// kubeconfigDir is the directory for kubeconfig, for example, ~/.kube
 	kubeconfigDir = "" // will be set in init()

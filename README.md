@@ -35,10 +35,13 @@ if it's set, `kubectl-cf` will use it as the kubeconfig file symlink.
 By default, `kubectl-cf` reads kubeconfig files from the directory of the given kubeconfig file,
 you can change this by setting the `KUBECTL_CF_PATHS` environment variable, for example:
 
+> "@kubeconfig-dir" is a special path, it means the directory of the given kubeconfig file
+
 ```
-# "@kubeconfig-dir" is a special path, it means the directory of the given kubeconfig file
 export KUBECTL_CF_PATHS="~/.kube:~/another-kube-dir:~/yet-another-kube-dir:@kubeconfig-dir"
 ```
+
+##### # Grep kubeconfig files with custom regex pattern
 
 By default, `kubectl-cf` grep kubeconfig files with regex pattern `^(?P<name>(config)|([^\.]+\.yaml))$`,
 you can change this by setting the `KUBECTL_CF_KUBECONFIG_MATCH_PATTERN` environment variable,
