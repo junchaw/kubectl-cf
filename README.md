@@ -20,17 +20,57 @@ Usage of kubectl-cf:
   cf -         Switch to the previous kubeconfig
 ```
 
-##### # Take control of kubeconfig symlinks
+## Installation
+
+#### # With Homebrew
+
+```shell
+brew tap junchaw/awesome
+brew install kubectl-cf
+kubectl-cf -h
+```
+
+#### # With Docker
+
+```shell
+docker run junchaw/kubectl-cf -h
+```
+
+#### # Download from release page
+
+First, download tar file from the [release page](https://github.com/junchaw/kubectl-cf/releases).
+
+After downloading the tar file, extract it, then put `kubectl-cf` in your `PATH`.
+
+#### # Build from source
+
+```shell
+git clone https://github.com/junchaw/kubectl-cf.git
+cd kubectl-cf && make build
+./bin/kubectl-cf -h
+```
+
+#### # Use as a kubectl plugin
+
+`kubectl-cf` can be called directly by typing `kubectl-cf`,
+or as a [kubectl plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/)
+`kubectl cf`, because it has the `kubectl-` prefix.
+
+You may want to set an alias for `kubectl-cf`, like `alias cf='kubectl cf'`.
+
+## Features
+
+#### # Take control of kubeconfig symlinks
 
 `kubectl-cf` maintains kubeconfig symlinks for you,
 and updates the symlink when you switch kubeconfig
 
-##### # Respect `KUBECONFIG` environment variable
+#### # Respect `KUBECONFIG` environment variable
 
 `kubectl-cf` respects the `KUBECONFIG` environment variable,
 if it's set, `kubectl-cf` will use it as the kubeconfig file symlink.
 
-##### # Grep kubeconfig files from multiple paths
+#### # Grep kubeconfig files from multiple paths
 
 By default, `kubectl-cf` reads kubeconfig files from the directory of the given kubeconfig file,
 you can change this by setting the `KUBECTL_CF_PATHS` environment variable, for example:
@@ -41,7 +81,7 @@ you can change this by setting the `KUBECTL_CF_PATHS` environment variable, for 
 export KUBECTL_CF_PATHS="~/.kube:~/another-kube-dir:~/yet-another-kube-dir:@kubeconfig-dir"
 ```
 
-##### # Grep kubeconfig files with custom regex pattern
+#### # Grep kubeconfig files with custom regex pattern
 
 By default, `kubectl-cf` grep kubeconfig files with regex pattern `^(?P<name>(config)|([^\.]+\.yaml))$`,
 you can change this by setting the `KUBECTL_CF_KUBECONFIG_MATCH_PATTERN` environment variable,
@@ -50,19 +90,6 @@ for example:
 ```
 export KUBECTL_CF_KUBECONFIG_MATCH_PATTERN="^(?P<name>([^\.]+\.kubeconfig))$"
 ```
-
-## Installation
-
-### Install Manually
-
-First, download tar file from the [release page](https://github.com/junchaw/kubectl-cf/releases).
-
-After downloading the tar file, extract it, then put `kubectl-cf` in your `PATH`.
-It can be called directly by typing `kubectl-cf`,
-or as a [kubectl plugin](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/)
-`kubectl cf`, because it has the `kubectl-` prefix.
-
-You may want to set an alias for it, like `alias cf='kubectl cf'`.
 
 ## Translations
 

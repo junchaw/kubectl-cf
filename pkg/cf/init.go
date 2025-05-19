@@ -10,6 +10,8 @@ import (
 )
 
 func init() {
+	_ = os.MkdirAll(kubeDir, 0755) // create kubeDir if not exist
+
 	kubectlCfConfigDir = os.Getenv("KUBECTL_CF_CONFIG_DIR")
 	if kubectlCfConfigDir == "" {
 		kubectlCfConfigDir = filepath.Join(kubeDir, "kubectl-cf")
