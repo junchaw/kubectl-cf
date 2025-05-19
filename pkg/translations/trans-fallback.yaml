@@ -4,7 +4,6 @@ cfUsage: |
     cf [config]  Select kubeconfig directly
     cf -         Switch to the previous kubeconfig
 createSymlinkError: "Create symlink error: %s"
-helpActions: "j/k, up/down: select • enter: choose • q, esc: quit"
 moreThanOneMatchesFound: "More than 1 matches found: %s, can not determine: %s"
 noMatchFound: "No match found: %s"
 noPreviousKubeconfig: "No previous kubeconfig"

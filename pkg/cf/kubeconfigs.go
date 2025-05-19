@@ -12,6 +12,18 @@ type Candidate struct {
 	FullPath string
 }
 
+func (c Candidate) Title() string {
+	return c.Name
+}
+
+func (c Candidate) Description() string {
+	return "Path: " + c.FullPath
+}
+
+func (c Candidate) FilterValue() string {
+	return c.Name
+}
+
 // ListKubeconfigCandidatesInDir lists all files in dir that matches KubeconfigFilenamePattern
 func ListKubeconfigCandidatesInDir(dir string) ([]Candidate, error) {
 	fileInfo, err := os.ReadDir(dir)

@@ -7,11 +7,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/junchaw/kubectl-cf/pkg/sys"
 )
 
 const (
+	// Any mode means the modal is ready.
+
 	ModeSelect = iota
 	ModeAskIfRenameKubeconfig
 	ModeQuit
@@ -19,6 +24,8 @@ const (
 
 type KubectlCfModal struct {
 	mode int
+
+	list list.Model
 
 	// candidates is a list of (Candidate/kubeconfig)s
 	candidates []Candidate
@@ -30,14 +37,12 @@ type KubectlCfModal struct {
 	// used in mode: ModeAskIfRenameKubeconfig
 	kubeconfigPathSuggestion string
 
-	// cursor indicates which candidate our cursor is pointing at
-	// used in mode: ModeSelect
-	cursor int
-
 	// farewell is the message which will be printed before quitting
 	// used in mode: ModeQuit
 	farewell string
 }
+
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 func (modal *KubectlCfModal) quit(farewell string) tea.Cmd {
 	if !strings.HasSuffix(farewell, "\n") {
@@ -64,13 +69,18 @@ func (modal *KubectlCfModal) refreshCandidates() error {
 		return err
 	}
 	modal.candidates = candidates
+	items := make([]list.Item, len(candidates))
+	for i, c := range candidates {
+		items[i] = c
+	}
+	modal.list.SetItems(items)
 	return nil
 }
 
 func (modal *KubectlCfModal) focusOnCurrentKubeconfig() {
 	for index, candidate := range modal.candidates {
 		if candidate.FullPath == modal.currentKubeconfigPath {
-			modal.cursor = index
+			modal.list.Select(index)
 		}
 	}
 }
@@ -88,6 +98,16 @@ func (modal *KubectlCfModal) Init() tea.Cmd {
 		return modal.quit(t("wrongNumberOfArgumentExpect", 1))
 	}
 	kubeconfigArg := flag.Arg(0)
+
+	list := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0) // will set later
+	list.Title = t("whatKubeconfig")
+	list.SetShowPagination(true)
+	list.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
+		}
+	}
+	modal.list = list
 
 	info, err := os.Lstat(kubeconfigPath)
 	if err != nil {
@@ -204,27 +224,20 @@ func (modal *KubectlCfModal) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case ModeSelect:
 		switch msg := msg.(type) {
+		case tea.WindowSizeMsg:
+			h, v := docStyle.GetFrameSize()
+			modal.list.SetSize(msg.Width-h, msg.Height-v)
 		case tea.KeyMsg: // Is it a key press?
 			switch msg.String() { // The key pressed
-			case "up", "k": // The "up" and "k" keys move the cursor up
-				if modal.cursor > 0 {
-					modal.cursor--
-				} else {
-					modal.cursor = len(modal.candidates) - 1
-				}
-
-			case "down", "j": // The "down" and "j" keys move the cursor down
-				if modal.cursor < len(modal.candidates)-1 {
-					modal.cursor++
-				} else {
-					modal.cursor = 0
-				}
-
 			case "enter": // The "enter" key selects the current candidate
-				return modal, modal.quit(modal.symlinkConfigPathTo(modal.candidates[modal.cursor].FullPath))
+				return modal, modal.quit(modal.symlinkConfigPathTo(modal.list.SelectedItem().(Candidate).FullPath))
 			}
 		}
-		return modal, nil
+
+		updatedList, cmd := modal.list.Update(msg)
+		modal.list = updatedList
+
+		return modal, cmd
 
 	default:
 		return modal, nil
@@ -240,38 +253,9 @@ func (modal *KubectlCfModal) View() string {
 		return modal.farewell
 
 	case ModeSelect:
-		content := t("whatKubeconfig") + "\n\n"
-
-		longestName := 0
-		for _, candidate := range modal.candidates { // Iterate over our candidates to find the longest name
-			if len(candidate.Name) > longestName {
-				longestName = len(candidate.Name)
-			}
-		}
-		for key, candidate := range modal.candidates { // Iterate over our candidates to display them
-			cursor := " " // The cursor at the beginning of the line
-			if modal.cursor == key {
-				cursor = CursorMark
-			}
-			content += cursor
-
-			suffix := ""
-			if candidate.FullPath == modal.currentKubeconfigPath {
-				suffix = CurrentKubeconfigMark
-			}
-			candicateLine := fmt.Sprintf(" %-*s %s%s\n", longestName, candidate.Name, candidate.FullPath, suffix)
-			if candidate.FullPath == modal.currentKubeconfigPath {
-				candicateLine = info(candicateLine)
-			} else {
-				candicateLine = text(candicateLine) // we need to set the style for normal text to override active style
-			}
-			content += candicateLine
-		}
-
-		content += subtle("\n" + t("helpActions") + "\n") // The footer
-		return content
+		return modal.list.View()
 
 	default:
-		return "Unknown mode"
+		return ""
 	}
 }
