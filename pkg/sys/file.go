@@ -3,6 +3,7 @@ package sys
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -82,6 +83,12 @@ func CreateSymlink(linkToOldName, linkFromNewName string) error {
 
 	if err := os.Symlink(linkToOldName, linkFromNewName); err != nil {
 		return errors.Wrap(err, "create symlink error")
+	}
+	// This is because some tools (like kube-ps1) unable to detect change to the symbolic link,
+	// and display outdated values.
+	now := time.Now()
+	if err := os.Chtimes(linkFromNewName, now, now); err != nil {
+		return errors.Wrap(err, "change symlink time error")
 	}
 	return nil
 }
