@@ -34,6 +34,12 @@ archives:
     files:
       - LICENSE
 
+brews:
+  - name: kubectl-cf
+    repository:
+      owner: junchaw
+      name: homebrew-awesome
+
 docker_manifests:
   - name_template: 'junchaw/kubectl-cf:{{ .Tag }}'
     image_templates:
